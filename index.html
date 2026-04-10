@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>マルチブラケット レセプト算定支援</title>
+<title>マルチブラケット レセプト算定支援 汎用版</title>
 </head>
 <body>
 
@@ -70,11 +70,15 @@ input[type=number]{padding:6px 8px;font-size:14px;border:1px solid var(--border)
 .摘要req{font-size:12px;color:var(--info-text);background:var(--info-bg);border-radius:6px;padding:6px 10px;margin-top:5px;line-height:1.6}
 .req-label{font-size:11px;font-weight:500;color:var(--info-text);margin-bottom:2px;opacity:0.8}
 .jaw-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px}
-.tooth-row{display:flex;justify-content:center;gap:4px;margin-bottom:6px;flex-wrap:nowrap}
-.tooth-btn{width:36px;height:36px;border:1.5px solid var(--border2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--text);background:var(--bg2);transition:all 0.1s;flex-shrink:0}
+.tooth-row{display:flex;justify-content:center;gap:4px;margin-bottom:6px;flex-wrap:nowrap;width:100%}
+.tooth-btn{width:36px;height:36px;border:1.5px solid var(--border2);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--text);background:var(--bg2);transition:all 0.1s;flex-shrink:1}
 .tooth-btn:hover{border-color:var(--accent);background:var(--accent-bg);color:var(--accent-text)}
 .tooth-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.midline{width:1px;background:var(--border2);margin:0 2px;height:36px;align-self:center;flex-shrink:0}
+.midline{width:1px;min-width:1px;background:var(--border2);margin:0 2px;height:36px;align-self:center;flex-shrink:0}
+@media(max-width:600px){
+.tooth-btn{width:calc((100vw - 60px) / 15);height:calc((100vw - 60px) / 15);font-size:clamp(8px,2vw,12px);border-radius:5px}
+.midline{margin:0 1px;height:calc((100vw - 60px) / 15)}
+}
 .db-summary{font-size:12px;color:var(--text2);margin-top:8px;line-height:1.6;background:var(--prev-bg);border-radius:8px;padding:8px 10px}
 .db-summary strong{color:var(--text)}
 </style>
@@ -91,6 +95,7 @@ input[type=number]{padding:6px 8px;font-size:14px;border:1px solid var(--border)
   <div class="grid3">
     <div class="field"><label>初診 / 再診</label>
       <select id="visit"><option value="re" selected>再診（75点）</option><option value="first">初診（291点）</option></select>
+      <span class="hint" style="visibility:hidden">.</span>
     </div>
     <div class="field"><label>動的処置期間</label>
       <select id="dyn_period" onchange="onDynChange()">
@@ -99,14 +104,15 @@ input[type=number]{padding:6px 8px;font-size:14px;border:1px solid var(--border)
         <option value="200">2年超（200点）</option>
       </select>
       <span class="err-msg" id="err_dyn">ステップアップがあるため動的処置は算定できません</span>
+      <span class="hint" id="dyn_spacer">.</span>
     </div>
-    <div class="field">
-      <label>診断料　<span style="font-size:11px;color:var(--text3);font-weight:400">（前回診断日より半年以上経過で算定可）</span></label>
+    <div class="field"><label>診断料</label>
       <select id="diag">
         <option value="0">算定しない</option>
         <option value="1500">歯科矯正診断料 1500点（Opeなし）</option>
         <option value="2300">顎口腔機能診断料 2300点（Ope）</option>
       </select>
+      <span class="hint">前回診断日より半年以上経過で算定可</span>
     </div>
   </div>
 </div>
@@ -312,7 +318,7 @@ function buildPreview(stepVal,countVal){
 }
 
 function onDynChange(){
-  if(v('dyn_period').value==='0'){v('dyn_period').classList.remove('err');v('err_dyn').style.display='none';}
+  if(v('dyn_period').value==='0'){v('dyn_period').classList.remove('err');v('err_dyn').style.display='none';v('dyn_spacer').style.visibility='visible';}
 }
 
 function onStepChange(){
@@ -324,8 +330,8 @@ function onStepChange(){
   v('kanri_auto').style.display=hasDeviceAny?'block':'none';
   const stepUpU=(cu===1&&su!=='0'&&su!==''),stepUpL=(cl===1&&sl!=='0'&&sl!=='');
   const anyStepUp=stepUpU||stepUpL;
-  if(anyStepUp&&v('dyn_period').value!=='0'){v('dyn_period').classList.add('err');v('err_dyn').style.display='block';}
-  else{v('dyn_period').classList.remove('err');v('err_dyn').style.display='none';}
+  if(anyStepUp&&v('dyn_period').value!=='0'){v('dyn_period').classList.add('err');v('err_dyn').style.display='block';v('dyn_spacer').style.visibility='hidden';}
+  else{v('dyn_period').classList.remove('err');v('err_dyn').style.display='none';v('dyn_spacer').style.visibility='visible';}
   const ligUSel=v('lig_upper'),ligLSel=v('lig_lower');
   if(stepUpU){ligUSel.value='no';ligUSel.disabled=true;ligUSel.classList.add('disabled-look');v('err_lig_upper').style.display='block';v('err_lig_upper_req').style.display='none';}
   else{ligUSel.disabled=false;ligUSel.classList.remove('disabled-look');v('err_lig_upper').style.display='none';}
