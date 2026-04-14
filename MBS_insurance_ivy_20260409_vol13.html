@@ -89,6 +89,7 @@ input[type=number]{padding:6px 8px;font-size:14px;border:1px solid var(--border)
         <option value="0">算定しない</option>
         <option value="250" selected>2年以内（250点）</option>
         <option value="200">2年超（200点）</option>
+        <option value="100">同一月2回目（100点）</option>
       </select>
       <span class="err-msg" id="err_dyn">ステップアップがあるため動的処置は算定できません</span>
     </div>
@@ -152,7 +153,18 @@ input[type=number]{padding:6px 8px;font-size:14px;border:1px solid var(--border)
       <div class="pts-preview" id="preview_lower"></div>
     </div>
   </div>
-  <div id="kanri_auto" class="kanri-auto" style="display:none">管理料 240点 が自動的に算定されます（月1回）</div>
+  <div id="kanri_auto" class="kanri-auto" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div>
+        <span style="font-weight:500">管理料（月1回）</span>
+        <span style="font-size:11px;margin-left:6px">装置あり時に自動表示</span>
+      </div>
+      <select id="kanri_select" style="width:auto;background:var(--bg2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:13px;outline:none">
+        <option value="240" selected>算定する（240点）</option>
+        <option value="0">算定しない</option>
+      </select>
+    </div>
+  </div>
 </div>
 
 <div class="section">
@@ -427,11 +439,15 @@ function calc(){
   if(dp===1500){items.push({cat:'診断',name:'歯科矯正診断料',pts:1500,note:'Opeなし'});摘要.push({num:'167',name:'歯科矯正診断料',reqs:['「その他」欄に：動的処置・マルチブラケット法・保定の開始・顎切除等の手術実施の区別を記載','前回診断料の算定年月日を記載（初回の場合は不要）']});}
   else if(dp===2300){items.push({cat:'診断',name:'顎口腔機能診断料',pts:2300,note:'Ope症例'});摘要.push({num:'168',name:'顎口腔機能診断料',reqs:['「その他」欄に：動的処置・マルチブラケット法・保定の開始・顎離断等の手術実施の区別を記載','顎離断等の手術を担当する連携保険医療機関名を記載','前回診断料の算定年月日を記載（初回の場合は不要）']});}
 
-  if(hasDeviceAny){items.push({cat:'管理',name:'管理料',pts:240,note:'月1回・自動算定'});摘要.push({num:'169',name:'歯科矯正管理料',reqs:['「その他」欄に：算定年月日【紙】を記載','動的処置またはマルチブラケット法の開始年月日を記載']});}
+  if(hasDeviceAny){
+    const kanriPts=parseInt(v('kanri_select').value)||0;
+    if(kanriPts>0){items.push({cat:'管理',name:'管理料',pts:kanriPts,note:'月1回'});摘要.push({num:'169',name:'歯科矯正管理料',reqs:['「その他」欄に：算定年月日【紙】を記載','動的処置またはマルチブラケット法の開始年月日を記載']});}
+  }
 
   const dynPts=parseInt(v('dyn_period').value)||0;
   if(dynPts>0){
-    items.push({cat:'処置',name:'動的処置料',pts:dynPts,note:dynPts===200?'動的処置期間2年超':'動的処置期間2年以内'});
+    const dynNote=dynPts===200?'動的処置期間2年超':dynPts===100?'同一月2回目':'動的処置期間2年以内';
+    items.push({cat:'処置',name:'動的処置料',pts:dynPts,note:dynNote});
     摘要.push({num:'171',name:'動的処置',reqs:['「その他」欄に：算定年月日を記載','動的処置またはマルチブラケット法の開始年月日を記載']});
   }
 
